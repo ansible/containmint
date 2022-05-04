@@ -1,0 +1,7 @@
+/.coverage
+/.env
+/.htmlcov
+/.nox
+/.pytest_cache
+/dist
+__pycache__

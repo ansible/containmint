@@ -1,0 +1,109 @@
+[project]
+name = "containmint"
+readme = "README.rst"
+requires-python = ">=3.9,<3.11"
+license = {file = "LICENSE"}
+
+authors = [
+    {name = "Matt Clay", email = "matt@mystile.com"},
+]
+
+maintainers = [
+    {name = "Matt Clay", email = "matt@mystile.com"},
+    {name = "Matt Davis", email = "mrd@redhat.com"},
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "ansible-core@https://github.com/ansible/ansible/archive/449d82a5219b5f92ed6c0d0ad1c3ceef22581357.tar.gz",
+]
+
+dynamic = [
+    "version",
+    "description",
+]
+
+[project.optional-dependencies]
+argcomplete = [
+    "argcomplete",
+]
+
+[project.urls]
+Homepage = "https://github.com/ansible/containmint"
+"Source Code" = "https://github.com/ansible/containmint"
+Documentation = "https://github.com/ansible/containmint/blob/main/README.rst"
+Changelog = "https://github.com/ansible/containmint/blob/main/CHANGELOG.rst"
+"CI: Azure Pipelines" = "https://dev.azure.com/ansible/containmint/"
+"Bug Tracker" = "https://github.com/ansible/containmint/issues"
+
+[project.scripts]
+containmint = "containmint:main"
+
+[build-system]
+requires = ["flit_core==3.7.1"]
+build-backend = "flit_core.buildapi"
+
+[tool.black]
+target-version = ["py39", "py310"]
+line-length = 160
+skip-string-normalization = true
+quiet = true
+
+[tool.isort]
+profile = "black"
+
+[tool.doc8]
+max_line_length = 120
+quiet = true
+
+[tool.pylint.basic]
+max-line-length = 160
+
+[tool.pylint.reports]
+score = false
+
+[tool.mypy]
+no_error_summary = true
+no_incremental = true
+cache_dir = "/dev/null"
+
+[[tool.mypy.overrides]]
+module = [
+    "argcomplete",
+]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true
+parallel = true
+data_file = ".coverage/coverage"
+source = [
+    "test/",
+    "containmint",
+]
+
+[tool.coverage.html]
+directory = ".htmlcov"
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "debug"
+log_format = "%(message)s"
+addopts = "--strict-markers"
+markers = [
+    "remote: tests that provision remote instances",
+    "config: tests that require configuration",
+    "credentials: tests that require registry credentials",
+]

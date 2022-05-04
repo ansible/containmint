@@ -1,0 +1,3 @@
+mypy
+nox  # required for nox import in noxfile.py
+pytest  # required for pytest import in test/test_*.py

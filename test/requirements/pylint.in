@@ -1,0 +1,3 @@
+nox  # required for nox import in noxfile.py
+pylint
+pytest  # required for pytest import in test/test_*.py

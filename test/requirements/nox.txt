@@ -1,0 +1,11 @@
+argcomplete==1.12.3
+colorlog==6.6.0
+distlib==0.3.4
+filelock==3.7.0
+nox==2022.1.7
+packaging==21.3
+platformdirs==2.5.2
+py==1.11.0
+pyparsing==3.0.9
+six==1.16.0
+virtualenv==20.14.1

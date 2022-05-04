@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-20.04'
+
+variables:
+  python_version: '3.10'
+  force_color: yes
+
+stages:
+  - stage: Local
+    dependsOn: []
+    jobs:
+      - job: Test
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(python_version)
+            displayName: Use Python
+          - script: pip install -r test/requirements/nox.txt --disable-pip-version-check --user
+            displayName: Install nox
+          - script: nox -e all -- -m 'not remote and not credentials'
+            displayName: Run nox
+  - stage: Remote
+    dependsOn:
+      - Local
+    jobs:
+      - template: templates/matrix.yml
+        parameters:
+          remotes:
+            - name: RHEL 8.6
+              code: rhel/8.6,python=3.9
+            - name: Ubuntu 22.04
+              code: ubuntu/22.04
+          architectures:
+            - x86_64
+            - aarch64

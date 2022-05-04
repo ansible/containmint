@@ -1,0 +1,4 @@
+docutils==0.18.1
+rstcheck==5.0.0
+types-docutils==0.18.3
+typing_extensions==4.2.0

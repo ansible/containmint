@@ -1,0 +1,26 @@
+parameters:
+  - name: remotes
+    type: object
+  - name: architectures
+    type: object
+
+jobs:
+  - ${{ each remote in parameters.remotes }}:
+      - ${{ each arch in parameters.architectures }}:
+          - job: "integration_${{ replace(replace(replace(replace(remote.code, '/', '_'), '.', '_'), ',', '_'), '=', '_') }}_${{ arch }}"
+            displayName: "${{ remote.name }} on ${{ arch }}"
+            steps:
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: $(python_version)
+                displayName: Use Python
+              - script: pip install . --disable-pip-version-check --user
+                displayName: Install
+              - script: >
+                  containmint build
+                  --tag "example.com/repo/name:latest"
+                  --arch "${{ arch }}"
+                  --remote "${{ remote.code }}"
+                  --context test/contexts/simple
+                  --no-login
+                displayName: Build

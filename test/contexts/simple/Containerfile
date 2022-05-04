@@ -1,0 +1,5 @@
+FROM quay.io/bedrock/ubuntu:jammy-20220428
+
+RUN date > /etc/timestamp  # force layers to be unique
+RUN uname -a
+RUN . /etc/os-release && echo $NAME
