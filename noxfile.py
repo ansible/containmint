@@ -109,7 +109,7 @@ def mypy(session: nox.Session) -> None:
 def yamllint(session: nox.Session) -> None:
     """Run yamllint."""
     helper = Helper(session)
-    session.run('yamllint', *helper.find('*.yml'))
+    session.run('yamllint', '--strict', *helper.find('*.yml'))
 
 
 @nox.session(reuse_venv=True)
