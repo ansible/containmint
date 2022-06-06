@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansible-core@https://github.com/ansible/ansible/archive/449d82a5219b5f92ed6c0d0ad1c3ceef22581357.tar.gz",
+    "ansible-core@https://github.com/ansible/ansible/archive/fe2d8b70669230cfde5608a4393efc1b8cec79ab.tar.gz",
 ]
 
 dynamic = [

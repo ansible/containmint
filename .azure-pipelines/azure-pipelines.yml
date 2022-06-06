@@ -36,8 +36,8 @@ stages:
       - template: templates/matrix.yml
         parameters:
           remotes:
-            - name: RHEL 8.6
-              code: rhel/8.6,python=3.9
+            - name: RHEL 9.0
+              code: rhel/9.0
             - name: Ubuntu 22.04
               code: ubuntu/22.04
           architectures:
