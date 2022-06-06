@@ -25,7 +25,7 @@ ARCHITECTURES = (
 
 REMOTES = (
     'ubuntu/22.04',
-    'rhel/8.6,python=3.9',
+    'rhel/9.0',
 )
 
 
