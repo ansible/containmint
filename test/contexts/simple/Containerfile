@@ -1,4 +1,4 @@
-FROM quay.io/bedrock/ubuntu:jammy-20220428
+FROM quay.io/bedrock/alpine:latest
 
 RUN date > /etc/timestamp  # force layers to be unique
 RUN uname -a

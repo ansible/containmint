@@ -62,6 +62,7 @@ class BuildCommand(Command, metaclass=abc.ABCMeta):
     tag: str
     push: bool
     login: bool
+    squash: t.Optional[str]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -84,6 +85,7 @@ class Build(BuildCommand):
             tag=self.tag,
             login=self.login,
             push=self.push,
+            squash=self.squash,
         )
 
         ansible_test_shell = ('ansible-test', 'shell', '--target-posix', f'remote:{self.remote},arch={self.arch}', '--color', '-v', '--truncate', '0')
@@ -192,7 +194,17 @@ class Execute(BuildCommand):
 
         credentials = RegistryCredentials(self.username, self.password) if self.login else None
 
-        options = ('--format', 'docker') if engine.program.name == 'podman' else ()
+        options: list[str] = []
+
+        if engine.program.name == 'podman':
+            options.extend(('--format', 'docker'))
+            if self.squash == 'all':
+                options.append('--squash-all')
+            elif self.squash == 'new':
+                options.append('--squash')
+        elif engine.program.name == 'docker':
+            if self.squash:
+                raise SquashUnsupportedError(squash_mode=self.squash, container_engine=engine.program.name)
 
         with registry_login(image.server, credentials):
             engine.run('build', '--tag', self.tag, '--file', match, self.context, '--no-cache', *options)
@@ -465,6 +477,16 @@ class ApplicationError(Exception):
         super().__init__(message)
 
 
+class SquashUnsupportedError(ApplicationError):
+    """An unsupported layer squashing mode was requested from the container runtime engine."""
+
+    def __init__(self, squash_mode: str, container_engine: str) -> None:
+        self.squash_mode = squash_mode
+        self.container_engine = container_engine
+
+        super().__init__(f'Container engine {container_engine} does not support squash mode {squash_mode}')
+
+
 class NoContainerEngineDetectedError(ApplicationError):
     """No container engine was detected."""
 
@@ -670,6 +692,7 @@ def parse_args() -> Command:
     common_build_parser.add_argument('--context', type=context_ref, default='.', help='path to the build context')
     common_build_parser.add_argument('--push', action='store_true', help='push the image')
     common_build_parser.add_argument('--no-login', action='store_false', dest='login', help='do not log in')
+    common_build_parser.add_argument('--squash', choices=['new', 'all'], help='squash to a single layer (choices: %(choices)s)')
 
     build_parser = subparsers.add_parser(Build.cli_name(), parents=[common_build_parser], description=Build.__doc__, help=Build.__doc__)
     build_parser.add_argument('--keep-instance', action='store_true', help='keep the remote instance')

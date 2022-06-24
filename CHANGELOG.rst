@@ -6,6 +6,8 @@ Changelog
 
 .. note:: This version is not yet released.
 
+* Add support for ``--squash={all|new}`` to squash image layers (podman only).
+
 0.2.0 - 2022-06-21
 ------------------
 

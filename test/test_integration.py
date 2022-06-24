@@ -6,12 +6,14 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
+import json
 import logging
 import os
 import re
 import shlex
 import subprocess
 import time
+import typing as t
 import unittest.mock
 
 import pytest
@@ -27,6 +29,8 @@ REMOTES = (
     'ubuntu/22.04',
     'rhel/9.0',
 )
+
+SQUASH_TYPES = (None, 'all', 'new')
 
 
 @dataclasses.dataclass(frozen=True)
@@ -140,12 +144,42 @@ def test_provision() -> None:
 
 @pytest.mark.parametrize('arch', ARCHITECTURES)
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'on:{remote}' for remote in REMOTES])
-def test_build(config: Config, credentials: Credentials, remote: str, arch: str) -> None:
+@pytest.mark.parametrize('squash', SQUASH_TYPES, ids=[f'squash:{squash_type}' for squash_type in SQUASH_TYPES])
+def test_build(config: Config, credentials: Credentials, remote: str, arch: str, squash: t.Optional[str]) -> None:
     """Run the 'build' command with the '--push' option."""
+    container_ctx = 'test/contexts/simple'
+    container_file = os.path.join(container_ctx, 'Containerfile')
+
     tag = config.build_tag(remote, arch)
 
-    with unittest.mock.patch.dict(os.environ, credentials.env):
-        run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', 'test/contexts/simple', '--push', '--keep-instance')
+    squash_args = ('--squash', squash) if squash else ()
+
+    # HACK: expose the engine in use so we can properly probe for squash support
+    squash_supported = 'rhel' in remote
+
+    # if we expect squash to fail, wire up an assertion to verify, otherwise a no-op nullcontext
+    err_assert = t.cast(t.ContextManager, pytest.raises(subprocess.CalledProcessError)) if squash and not squash_supported else contextlib.nullcontext()
+
+    with unittest.mock.patch.dict(os.environ, credentials.env), err_assert as err_context:
+        run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', container_ctx, '--push', '--keep-instance', *squash_args)
+
+    # if the remote process failed, poke at the output (merged to stdout) to ensure it failed for the right reason
+    if err_context:
+        assert f'does not support squash mode {squash}' in err_context.value.stdout
+
+    # validate non-zero-size layer counts against base image if we squashed to ensure the squash actually occurred
+    if squash and squash_supported:
+        # NB: we're currently hardcoding for podman
+        proc = run('podman', 'history', '--format=json', get_base_image_from_containerfile(container_file))
+        base_layer_count = len([layer for layer in json.loads(proc.stdout) if layer.get('size', 0) > 0])
+
+        proc = run('podman', 'manifest', 'inspect', '--log-level=error', tag)
+        layer_count = len([layer for layer in json.loads(proc.stdout)['layers'] if layer.get('size', 0) > 0])
+
+        if squash == 'new':
+            assert layer_count == base_layer_count + 1
+        elif squash == 'all':
+            assert layer_count == 1
 
 
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'from:{remote}' for remote in REMOTES])
@@ -310,3 +344,14 @@ def run_containmint(*args: str, cwd: str | None = None) -> subprocess.CompletedP
 def make_tag(value: str) -> str:
     """Return the given value with substitutions performed to make it suitable for use in a tag."""
     return re.sub('[^a-zA-Z0-9_.-]+', '-', value)
+
+
+def get_base_image_from_containerfile(path: str) -> str:
+    """Return the first image ref FROM base image from the specified Containerfile."""
+    img_re = re.compile(r'FROM (.+)$')
+    with open(path, 'r', encoding='UTF-8') as reader:
+        for line in reader:
+            if match := img_re.match(line):
+                return match.group(1)
+
+    raise ValueError(f'no FROM found in {path}')
