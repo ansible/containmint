@@ -1,6 +1,7 @@
 /.coverage
 /.env
 /.htmlcov
+/.idea
 /.nox
 /.pytest_cache
 /dist
