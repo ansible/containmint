@@ -70,6 +70,7 @@ quiet = true
 
 [tool.pylint.basic]
 max-line-length = 160
+max-locals = 20
 
 [tool.pylint.reports]
 score = false
