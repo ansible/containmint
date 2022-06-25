@@ -170,6 +170,7 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
     # validate non-zero-size layer counts against base image if we squashed to ensure the squash actually occurred
     if squash and squash_supported:
         local_engine = str(containmint.ContainerEngine.detect())
+
         proc = run(local_engine, 'history', '--format=json', get_base_image_from_containerfile(container_file))
         base_layer_count = len([layer for layer in json.loads(proc.stdout) if layer.get('size', 0) > 0])
 
