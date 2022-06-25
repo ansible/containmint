@@ -169,17 +169,18 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
 
     # validate non-zero-size layer counts against base image if we squashed to ensure the squash actually occurred
     if squash and squash_supported:
-        local_engine = str(containmint.ContainerEngine.detect())
+        local_engine = containmint.engine.program
 
-        proc = run(local_engine, 'history', '--format=json', get_base_image_from_containerfile(container_file))
-        base_layer_count = len([layer for layer in json.loads(proc.stdout) if layer.get('size', 0) > 0])
+        proc = run(str(local_engine), 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(container_file))
+        data = f'[{",".join(proc.stdout.splitlines())}]' if local_engine.name == 'docker' else proc.stdout
+        base_layer_count = len([layer for layer in json.loads(data) if layer.get('size', int(layer.get('Size', 0))) > 0])
 
-        proc = run(local_engine, 'manifest', 'inspect', '--log-level=error', tag)
+        proc = run(str(local_engine), 'manifest', 'inspect', *(('--log-level=error',) if local_engine.name == 'podman' else ()), tag)
         layer_count = len([layer for layer in json.loads(proc.stdout)['layers'] if layer.get('size', 0) > 0])
 
         if squash == 'new':
             assert layer_count == base_layer_count + 1
-        elif squash == 'all':
+        else:
             assert layer_count == 1
 
 
@@ -317,7 +318,7 @@ def run(*args: str, cwd: str | None = None) -> subprocess.CompletedProcess:
             while line := process.stdout.readline():
                 text = line.decode().rstrip()
                 logging.info('%s', text)
-                stdout.append(text)
+                stdout.append(f'{text}\n')
 
             process.wait()
     except FileNotFoundError:  # pragma: no cover
@@ -347,13 +348,12 @@ def make_tag(value: str) -> str:
     return re.sub('[^a-zA-Z0-9_.-]+', '-', value)
 
 
-def get_base_image_from_containerfile(path: str) -> str:
-    """Return the first image ref FROM base image from the specified Containerfile."""
-    img_re = re.compile(r'FROM (.+)$')
+def get_base_image_from_container_file(path: str) -> str:
+    """Return the first image ref FROM base image from the specified container file."""
+    img_re = re.compile(r'^FROM (.+)$', flags=re.MULTILINE)
 
     with open(path, 'r', encoding='UTF-8') as reader:
-        for line in reader:
-            if match := img_re.match(line):
-                return match.group(1)
+        match = img_re.search(reader.read())
 
-    raise ValueError(f'no FROM found in {path}')
+    assert match
+    return match.group(1)
