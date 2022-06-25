@@ -198,6 +198,7 @@ class Execute(BuildCommand):
 
         if engine.program.name == 'podman':
             options.extend(('--format', 'docker'))
+
             if self.squash == 'all':
                 options.append('--squash-all')
             elif self.squash == 'new':

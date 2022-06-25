@@ -349,6 +349,7 @@ def make_tag(value: str) -> str:
 def get_base_image_from_containerfile(path: str) -> str:
     """Return the first image ref FROM base image from the specified Containerfile."""
     img_re = re.compile(r'FROM (.+)$')
+
     with open(path, 'r', encoding='UTF-8') as reader:
         for line in reader:
             if match := img_re.match(line):
