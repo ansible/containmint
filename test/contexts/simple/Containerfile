@@ -1,4 +1,4 @@
-FROM quay.io/bedrock/alpine:latest
+FROM quay.io/bedrock/alpine:3.16.0
 
 RUN date > /etc/timestamp  # force layers to be unique
 RUN uname -a
