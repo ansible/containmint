@@ -27,6 +27,7 @@ def test_execute_serialization():
         tag='my_tag',
         push=False,
         login=False,
+        squash='all',
     )
 
     with tempfile.NamedTemporaryFile(prefix='config-', suffix='.json') as config_file:

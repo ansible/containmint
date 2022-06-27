@@ -1,7 +1,7 @@
 argcomplete==1.12.3
 colorlog==6.6.0
 distlib==0.3.4
-filelock==3.7.0
+filelock==3.7.1
 nox==2022.1.7
 packaging==21.3
 platformdirs==2.5.2

@@ -6,12 +6,14 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
+import json
 import logging
 import os
 import re
 import shlex
 import subprocess
 import time
+import typing as t
 import unittest.mock
 
 import pytest
@@ -27,6 +29,8 @@ REMOTES = (
     'ubuntu/22.04',
     'rhel/9.0',
 )
+
+SQUASH_TYPES = (None, 'all', 'new')
 
 
 @dataclasses.dataclass(frozen=True)
@@ -140,12 +144,49 @@ def test_provision() -> None:
 
 @pytest.mark.parametrize('arch', ARCHITECTURES)
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'on:{remote}' for remote in REMOTES])
-def test_build(config: Config, credentials: Credentials, remote: str, arch: str) -> None:
+@pytest.mark.parametrize('squash', SQUASH_TYPES, ids=[f'squash:{squash_type}' for squash_type in SQUASH_TYPES])
+def test_build(config: Config, credentials: Credentials, remote: str, arch: str, squash: t.Optional[str]) -> None:
     """Run the 'build' command with the '--push' option."""
+    new_container_ctx = 'test/contexts/simple'
+    new_container_file = os.path.join(new_container_ctx, 'Containerfile')
+    new_container_own_layer_count = 3  # number of layers known to be created by the container (must be kept in sync with changes to the container file)
+
+    assert new_container_own_layer_count > 1  # squash new requires 2+ layers to verify, this check helps avoid mistakes when updating the container file
+
     tag = config.build_tag(remote, arch)
 
-    with unittest.mock.patch.dict(os.environ, credentials.env):
-        run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', 'test/contexts/simple', '--push', '--keep-instance')
+    squash_args = ('--squash', squash) if squash else ()
+
+    # HACK: expose the engine in use so we can properly probe for squash support
+    squash_supported = 'rhel' in remote
+
+    # if we expect squash to fail, wire up an assertion to verify, otherwise a no-op nullcontext
+    err_assert = t.cast(t.ContextManager, pytest.raises(subprocess.CalledProcessError)) if squash and not squash_supported else contextlib.nullcontext()
+
+    with unittest.mock.patch.dict(os.environ, credentials.env), err_assert as err_context:
+        run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', new_container_ctx, '--push', '--keep-instance', *squash_args)
+
+    # if the remote process failed, poke at the output (merged to stdout) to ensure it failed for the right reason
+    if err_context:
+        assert f'does not support squash mode {squash}' in err_context.value.stdout
+
+    # validate non-zero-size layer counts against base image to ensure the squash (or lack thereof) resulted in the expected number of layers
+    if not squash or squash_supported:
+        local_engine = containmint.engine.program
+
+        proc = run(str(local_engine), 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(new_container_file))
+        data = f'[{",".join(proc.stdout.splitlines())}]' if local_engine.name == 'docker' else proc.stdout
+        base_layer_count = len([layer for layer in json.loads(data) if layer.get('size', int(layer.get('Size', 0))) > 0])
+
+        proc = run(str(local_engine), 'manifest', 'inspect', *(('--log-level=error',) if local_engine.name == 'podman' else ()), tag)
+        layer_count = len([layer for layer in json.loads(proc.stdout)['layers'] if layer.get('size', 0) > 0])
+
+        if squash == 'new':
+            assert layer_count == base_layer_count + 1
+        elif squash == 'all':
+            assert layer_count == 1
+        else:
+            assert layer_count == base_layer_count + new_container_own_layer_count
 
 
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'from:{remote}' for remote in REMOTES])
@@ -282,7 +323,7 @@ def run(*args: str, cwd: str | None = None) -> subprocess.CompletedProcess:
             while line := process.stdout.readline():
                 text = line.decode().rstrip()
                 logging.info('%s', text)
-                stdout.append(text)
+                stdout.append(f'{text}\n')
 
             process.wait()
     except FileNotFoundError:  # pragma: no cover
@@ -310,3 +351,14 @@ def run_containmint(*args: str, cwd: str | None = None) -> subprocess.CompletedP
 def make_tag(value: str) -> str:
     """Return the given value with substitutions performed to make it suitable for use in a tag."""
     return re.sub('[^a-zA-Z0-9_.-]+', '-', value)
+
+
+def get_base_image_from_container_file(path: str) -> str:
+    """Return the first image ref FROM base image from the specified container file."""
+    img_re = re.compile(r'^FROM (.+)$', flags=re.MULTILINE)
+
+    with open(path, 'r', encoding='UTF-8') as reader:
+        match = img_re.search(reader.read())
+
+    assert match
+    return match.group(1)
