@@ -149,6 +149,9 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
     """Run the 'build' command with the '--push' option."""
     container_ctx = 'test/contexts/simple'
     container_file = os.path.join(container_ctx, 'Containerfile')
+    container_layers = 3
+
+    assert container_layers > 1  # squash new cannot be verified unless the container has 2+ layers
 
     tag = config.build_tag(remote, arch)
 
@@ -167,8 +170,8 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
     if err_context:
         assert f'does not support squash mode {squash}' in err_context.value.stdout
 
-    # validate non-zero-size layer counts against base image if we squashed to ensure the squash actually occurred
-    if squash and squash_supported:
+    # validate non-zero-size layer counts against base image to ensure the squash (or lack thereof) resulted in the expected number of layers
+    if not squash or squash_supported:
         local_engine = containmint.engine.program
 
         proc = run(str(local_engine), 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(container_file))
@@ -180,8 +183,10 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
 
         if squash == 'new':
             assert layer_count == base_layer_count + 1
-        else:
+        elif squash == 'all':
             assert layer_count == 1
+        else:
+            assert layer_count == base_layer_count + container_layers
 
 
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'from:{remote}' for remote in REMOTES])
