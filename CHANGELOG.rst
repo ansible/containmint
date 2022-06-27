@@ -1,10 +1,8 @@
 Changelog
 =========
 
-0.3.0 - `main`_
----------------
-
-.. note:: This version is not yet released.
+0.3.0 - 2022-06-27
+------------------
 
 * Add support for ``--squash={all|new}`` to squash image layers (podman only).
 * Change default remote image to ``rhel/9.0`` (so squashing works by default).
@@ -18,5 +16,3 @@ Changelog
 ------------------
 
 * Initial release.
-
-.. _`main`: https://github.com/ansible/containmint
