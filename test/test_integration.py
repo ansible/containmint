@@ -147,11 +147,11 @@ def test_provision() -> None:
 @pytest.mark.parametrize('squash', SQUASH_TYPES, ids=[f'squash:{squash_type}' for squash_type in SQUASH_TYPES])
 def test_build(config: Config, credentials: Credentials, remote: str, arch: str, squash: t.Optional[str]) -> None:
     """Run the 'build' command with the '--push' option."""
-    container_ctx = 'test/contexts/simple'
-    container_file = os.path.join(container_ctx, 'Containerfile')
-    container_layers = 3
+    new_container_ctx = 'test/contexts/simple'
+    new_container_file = os.path.join(new_container_ctx, 'Containerfile')
+    new_container_own_layer_count = 3  # number of layers known to be created by the container (must be kept in sync with changes to the container file)
 
-    assert container_layers > 1  # squash new cannot be verified unless the container has 2+ layers
+    assert new_container_own_layer_count > 1  # squash new requires 2+ layers to verify, this check helps avoid mistakes when updating the container file
 
     tag = config.build_tag(remote, arch)
 
@@ -164,7 +164,7 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
     err_assert = t.cast(t.ContextManager, pytest.raises(subprocess.CalledProcessError)) if squash and not squash_supported else contextlib.nullcontext()
 
     with unittest.mock.patch.dict(os.environ, credentials.env), err_assert as err_context:
-        run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', container_ctx, '--push', '--keep-instance', *squash_args)
+        run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', new_container_ctx, '--push', '--keep-instance', *squash_args)
 
     # if the remote process failed, poke at the output (merged to stdout) to ensure it failed for the right reason
     if err_context:
@@ -174,7 +174,7 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
     if not squash or squash_supported:
         local_engine = containmint.engine.program
 
-        proc = run(str(local_engine), 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(container_file))
+        proc = run(str(local_engine), 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(new_container_file))
         data = f'[{",".join(proc.stdout.splitlines())}]' if local_engine.name == 'docker' else proc.stdout
         base_layer_count = len([layer for layer in json.loads(data) if layer.get('size', int(layer.get('Size', 0))) > 0])
 
@@ -186,7 +186,7 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
         elif squash == 'all':
             assert layer_count == 1
         else:
-            assert layer_count == base_layer_count + container_layers
+            assert layer_count == base_layer_count + new_container_own_layer_count
 
 
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'from:{remote}' for remote in REMOTES])
