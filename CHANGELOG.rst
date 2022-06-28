@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.0.post0 - (unreleased)
+--------------------------
+
+.. note:: This version is not yet released.
+
 0.3.0 - 2022-06-27
 ------------------
 
