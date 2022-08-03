@@ -229,6 +229,21 @@ def test_execute(config: Config, credentials: Credentials) -> None:
         run_containmint('execute', '--tag', scratch, '--context', 'test/contexts/simple', '--push')
 
 
+@pytest.mark.parametrize('build_args', [['argwithdefault=overridden'], ['argwithdefault=overridden', 'anotherarg=alsooverridden']])
+def test_execute_with_build_args(config: Config, build_args: list[str]) -> None:
+    """Run the 'execute' command with various '--build-arg' options."""
+    scratch = config.execute_tag
+    options: list[str] = []
+
+    for build_arg in build_args:
+        options.extend(('--build-arg', build_arg))
+
+    proc = run_containmint('execute', '--tag', scratch, '--no-login', '--context', 'test/contexts/simple', *options)
+
+    for build_arg in build_args:
+        assert f'GOT {build_arg}' in proc.stdout
+
+
 def test_execute_no_login() -> None:
     """Run the 'execute' command with the '--no-login' option."""
     run_containmint('execute', '--tag', 'example.com/repo/name:latest', '--context', 'test/contexts/simple', '--no-login')

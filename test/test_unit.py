@@ -28,6 +28,7 @@ def test_execute_serialization():
         push=False,
         login=False,
         squash='all',
+        build_args=['foo=bar', 'baz=blar'],
     )
 
     with tempfile.NamedTemporaryFile(prefix='config-', suffix='.json') as config_file:
