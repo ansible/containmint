@@ -230,15 +230,14 @@ def test_execute(config: Config, credentials: Credentials) -> None:
 
 
 @pytest.mark.parametrize('build_args', [['argwithdefault=overridden'], ['argwithdefault=overridden', 'anotherarg=alsooverridden']])
-def test_execute_with_build_args(config: Config, build_args: list[str]) -> None:
+def test_execute_with_build_args(build_args: list[str]) -> None:
     """Run the 'execute' command with various '--build-arg' options."""
-    scratch = config.execute_tag
     options: list[str] = []
 
     for build_arg in build_args:
         options.extend(('--build-arg', build_arg))
 
-    proc = run_containmint('execute', '--tag', scratch, '--no-login', '--context', 'test/contexts/simple', *options)
+    proc = run_containmint('execute', '--tag', 'splat/splat:splat', '--no-login', '--context', 'test/contexts/simple', *options)
 
     for build_arg in build_args:
         assert f'GOT {build_arg}' in proc.stdout

@@ -83,7 +83,12 @@ class Build(BuildCommand):
         remote_program = os.path.join(remote_workdir, PROGRAM_NAME)
 
         execute = Execute(
-            context=os.path.join(remote_workdir, CONTEXT_NAME), tag=self.tag, login=self.login, push=self.push, squash=self.squash, build_args=self.build_args
+            context=os.path.join(remote_workdir, CONTEXT_NAME),
+            tag=self.tag,
+            login=self.login,
+            push=self.push,
+            squash=self.squash,
+            build_args=self.build_args,
         )
 
         ansible_test_shell = ('ansible-test', 'shell', '--target-posix', f'remote:{self.remote},arch={self.arch}', '--color', '-v', '--truncate', '0')
@@ -644,10 +649,10 @@ def context_ref(value: str) -> str:
     return value
 
 
-def kv_passthrough(value: str) -> str:
+def key_value(value: str) -> str:
     """Validate an arg is of the form key=value."""
     if not re.match(r'.+=.+', value):
-        raise argparse.ArgumentTypeError('--build-arg requires a key=value format')
+        raise argparse.ArgumentTypeError('key=value format is required')
 
     return value
 
@@ -704,13 +709,7 @@ def parse_args() -> Command:
     common_build_parser.add_argument('--no-login', action='store_false', dest='login', help='do not log in')
     common_build_parser.add_argument('--squash', choices=['new', 'all'], help='squash to a single layer (choices: %(choices)s)')
     common_build_parser.add_argument(
-        '--build-arg',
-        metavar='K=V',
-        type=kv_passthrough,
-        dest='build_args',
-        default=[],
-        action='append',
-        help='build arg of the form K=V (passed directly to the builder)',
+        '--build-arg', metavar='K=V', type=key_value, dest='build_args', default=[], action='append', help='build arg passed directly to the builder'
     )
 
     build_parser = subparsers.add_parser(Build.cli_name(), parents=[common_build_parser], description=Build.__doc__, help=Build.__doc__)
