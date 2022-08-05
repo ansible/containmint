@@ -708,9 +708,7 @@ def parse_args() -> Command:
     common_build_parser.add_argument('--push', action='store_true', help='push the image')
     common_build_parser.add_argument('--no-login', action='store_false', dest='login', help='do not log in')
     common_build_parser.add_argument('--squash', choices=['new', 'all'], help='squash to a single layer (choices: %(choices)s)')
-    common_build_parser.add_argument(
-        '--build-arg', metavar='K=V', type=key_value, dest='build_args', default=[], action='append', help='build arg passed directly to the builder'
-    )
+    common_build_parser.add_argument('--build-arg', metavar='K=V', type=key_value, dest='build_args', action='append', help='build arg passed to the builder')
 
     build_parser = subparsers.add_parser(Build.cli_name(), parents=[common_build_parser], description=Build.__doc__, help=Build.__doc__)
     build_parser.add_argument('--keep-instance', action='store_true', help='keep the remote instance')
