@@ -1,5 +1,8 @@
 FROM quay.io/bedrock/alpine:3.16.0
 
+ARG argwithdefault=default
+ARG anotherarg=alsodefault
+
 RUN date | tee /etc/timestamp  # force layers to be unique
-RUN uname -a | tee /etc/uname  # force a second layer to be created for squash testing
+RUN uname -a | tee /etc/uname; echo "GOT argwithdefault=$argwithdefault; GOT anotherarg=$anotherarg"  # force a second layer to be created for squash testing
 RUN . /etc/os-release && echo $NAME | tee /etc/name  # output must be saved for consistency between docker and podman
