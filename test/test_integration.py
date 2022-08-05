@@ -245,7 +245,9 @@ def test_execute_with_build_args(build_args: list[str]) -> None:
 
 def test_execute_no_login() -> None:
     """Run the 'execute' command with the '--no-login' option."""
-    run_containmint('execute', '--tag', 'example.com/repo/name:latest', '--context', 'test/contexts/simple', '--no-login')
+    proc = run_containmint('execute', '--tag', 'example.com/repo/name:latest', '--context', 'test/contexts/simple', '--no-login')
+
+    assert 'GOT argwithdefault=default; GOT anotherarg=alsodefault' in proc.stdout
 
 
 def test_execute_empty_context_error() -> None:
