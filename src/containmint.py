@@ -29,7 +29,7 @@ try:
 except ImportError:
     argcomplete = None
 
-__version__ = '0.3.0.post0'
+__version__ = '0.4.0'
 
 PROGRAM_NAME = os.path.basename(__file__)
 TAG_FORMAT = '{server}/{repo}:{tag}'
