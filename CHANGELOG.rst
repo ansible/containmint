@@ -1,10 +1,10 @@
 Changelog
 =========
 
-0.3.0.post0 - (unreleased)
---------------------------
+0.4.0 - 2022-08-05
+------------------
 
-.. note:: This version is not yet released.
+* Add support for ``--build-arg`` passthrough to container builds.
 
 0.3.0 - 2022-06-27
 ------------------
