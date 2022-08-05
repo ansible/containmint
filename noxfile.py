@@ -68,7 +68,7 @@ def _nox(session: nox.Session) -> None:
 def black(session: nox.Session) -> None:
     """Run black."""
     helper = Helper(session)
-    session.run('black', *([] if helper.update else ['--check']), *helper.find('*.py'))
+    session.run('black', *([] if helper.update else ['--check', '--diff']), *helper.find('*.py'))
 
 
 @nox.session(reuse_venv=True)
