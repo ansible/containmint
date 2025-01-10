@@ -1,2 +1,3 @@
-docformatter==1.4
+charset-normalizer==3.4.1
+docformatter==1.7.5
 untokenize==0.1.1
