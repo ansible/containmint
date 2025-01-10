@@ -27,7 +27,8 @@ ARCHITECTURES = (
 
 REMOTES = (
     'ubuntu/22.04',
-    'rhel/9.0',
+    'ubuntu/24.04',
+    'rhel/9.4',
 )
 
 SQUASH_TYPES = (None, 'all', 'new')

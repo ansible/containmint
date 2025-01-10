@@ -1,7 +1,7 @@
 [project]
 name = "containmint"
 readme = "README.rst"
-requires-python = ">=3.9,<3.11"
+requires-python = ">=3.11,<3.14"
 license = {file = "LICENSE"}
 
 authors = [
@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansible-core == 2.13.1",
+    "ansible-core == 2.18.1",
 ]
 
 dynamic = [
@@ -74,6 +74,12 @@ max-locals = 20
 
 [tool.pylint.reports]
 score = false
+
+[tool.pylint."messages control"]
+disable = """
+    broad-exception-raised,
+    use-dict-literal,
+"""
 
 [tool.mypy]
 no_error_summary = true

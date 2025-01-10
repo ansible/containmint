@@ -1,4 +1,4 @@
-FROM quay.io/bedrock/alpine:3.16.0
+FROM public.ecr.aws/docker/library/alpine:3.21.2
 
 ARG argwithdefault=default
 ARG anotherarg=alsodefault

@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.5.0 - 2025-01-10
+------------------
+
+* Pin ``ansible-core`` dependency to version 2.18.1.
+* Require Python 3.11 - 3.13.
+* Change default remote image to ``ubuntu/22.04``.
+  This was the default in 0.2.0, which is still the most common and stable use case.
+
 0.4.0 - 2022-08-05
 ------------------
 

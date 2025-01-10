@@ -22,14 +22,17 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import types
 import typing as t
+
+argcomplete: types.ModuleType | None
 
 try:
     import argcomplete
 except ImportError:
     argcomplete = None
 
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 
 PROGRAM_NAME = os.path.basename(__file__)
 TAG_FORMAT = '{server}/{repo}:{tag}'
@@ -712,7 +715,7 @@ def parse_args() -> Command:
 
     build_parser = subparsers.add_parser(Build.cli_name(), parents=[common_build_parser], description=Build.__doc__, help=Build.__doc__)
     build_parser.add_argument('--keep-instance', action='store_true', help='keep the remote instance')
-    build_parser.add_argument('--remote', default='rhel/9.0', help='ansible-test remote target args')
+    build_parser.add_argument('--remote', default='ubuntu/22.04', help='ansible-test remote target args')
     build_parser.add_argument('--arch', metavar='ARCH', default='x86_64', choices=['x86_64', 'aarch64'], help='architecture (choices: %(choices)s)')
     build_parser.set_defaults(command_type=Build)
 

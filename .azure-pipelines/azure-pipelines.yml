@@ -9,10 +9,10 @@ pr:
       - main
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-24.04'
 
 variables:
-  python_version: '3.10'
+  python_version: '3.12'
   force_color: 'yes'
 
 stages:
@@ -36,10 +36,12 @@ stages:
       - template: templates/matrix.yml
         parameters:
           remotes:
-            - name: RHEL 9.0
-              code: rhel/9.0
+            - name: RHEL 9.4
+              code: rhel/9.4
             - name: Ubuntu 22.04
               code: ubuntu/22.04
+            - name: Ubuntu 24.04
+              code: ubuntu/24.04
           architectures:
             - x86_64
             - aarch64

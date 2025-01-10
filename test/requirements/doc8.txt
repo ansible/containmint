@@ -1,7 +1,7 @@
-doc8==0.11.1
-docutils==0.18.1
-pbr==5.9.0
-Pygments==2.12.0
-restructuredtext-lint==1.4.0
-stevedore==3.5.0
-tomli==2.0.1
+doc8==1.1.2
+docutils==0.21.2
+pbr==6.1.0
+Pygments==2.19.1
+restructuredtext_lint==1.4.0
+stevedore==5.4.0
+tomli==2.2.1
