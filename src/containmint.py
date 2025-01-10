@@ -22,7 +22,10 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import types
 import typing as t
+
+argcomplete: types.ModuleType | None
 
 try:
     import argcomplete
