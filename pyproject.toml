@@ -75,6 +75,12 @@ max-locals = 20
 [tool.pylint.reports]
 score = false
 
+[tool.pylint."messages control"]
+disable = """
+    broad-exception-raised,
+    use-dict-literal,
+"""
+
 [tool.mypy]
 no_error_summary = true
 no_incremental = true
