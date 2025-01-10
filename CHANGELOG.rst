@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.1 - 2025-01-10
+------------------
+
+* Use ``flit_core==3.10.1`` for build.
+* Remove Python classifiers from project metadata.
+
 0.5.0 - 2025-01-10
 ------------------
 
