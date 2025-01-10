@@ -54,7 +54,7 @@ requires = ["flit_core==3.7.1"]
 build-backend = "flit_core.buildapi"
 
 [tool.black]
-target-version = ["py39", "py310"]
+target-version = ["py311", "py312", "py313"]
 line-length = 160
 skip-string-normalization = true
 quiet = true
