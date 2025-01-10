@@ -20,8 +20,6 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Natural Language :: English",
     "Operating System :: POSIX",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.9",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Utilities",
 ]
@@ -52,11 +50,11 @@ Changelog = "https://github.com/ansible/containmint/blob/main/CHANGELOG.rst"
 containmint = "containmint:main"
 
 [build-system]
-requires = ["flit_core==3.7.1"]
+requires = ["flit_core==3.10.1"]
 build-backend = "flit_core.buildapi"
 
 [tool.black]
-target-version = ["py39", "py310"]
+target-version = ["py311", "py312", "py313"]
 line-length = 160
 skip-string-normalization = true
 quiet = true
