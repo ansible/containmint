@@ -185,6 +185,8 @@ def validate(session: nox.Session) -> None:
 @nox.session(reuse_venv=True, name='all')
 def _all(session: nox.Session) -> None:
     """Run all tests (default, build, validate)."""
+    assert nox.options.sessions
+
     for target in nox.options.sessions:
         session.notify(target)
 

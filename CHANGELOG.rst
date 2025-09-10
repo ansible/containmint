@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.6.0 - 2025-09-10
+------------------
+
+* Update CI to use Python 3.13.
+* Update RHEL 9.4 tests to 9.5.
+* Add RHEL 10.0 tests.
+* Remove Ubuntu 22.04 tests.
+* Update ``pyproject.toml`` to use PEP 639 license metadata.
+* Pin ``ansible-core`` dependency to version 2.19.2.
+* Use ``flit_core==3.12.0`` for build.
+* Switch Ubuntu builds from Docker to Podman.
+* Change default remote image to ``ubuntu/24.04``.
+* Update test requirements.
+* Update integration tests to use Podman locally.
+
 0.5.1 - 2025-01-10
 ------------------
 
