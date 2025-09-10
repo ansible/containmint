@@ -26,9 +26,9 @@ ARCHITECTURES = (
 )
 
 REMOTES = (
-    'ubuntu/22.04',
     'ubuntu/24.04',
-    'rhel/9.4',
+    'rhel/9.5',
+    'rhel/10.0',
 )
 
 SQUASH_TYPES = (None, 'all', 'new')
@@ -157,37 +157,26 @@ def test_build(config: Config, credentials: Credentials, remote: str, arch: str,
     tag = config.build_tag(remote, arch)
 
     squash_args = ('--squash', squash) if squash else ()
+    tag += f'-squash-{squash}' if squash else ''
 
-    # HACK: expose the engine in use so we can properly probe for squash support
-    squash_supported = 'rhel' in remote
-
-    # if we expect squash to fail, wire up an assertion to verify, otherwise a no-op nullcontext
-    err_assert = t.cast(t.ContextManager, pytest.raises(subprocess.CalledProcessError)) if squash and not squash_supported else contextlib.nullcontext()
-
-    with unittest.mock.patch.dict(os.environ, credentials.env), err_assert as err_context:
+    with unittest.mock.patch.dict(os.environ, credentials.env):
         run_containmint('build', '--tag', tag, '--arch', arch, '--remote', remote, '--context', new_container_ctx, '--push', '--keep-instance', *squash_args)
 
-    # if the remote process failed, poke at the output (merged to stdout) to ensure it failed for the right reason
-    if err_context:
-        assert f'does not support squash mode {squash}' in err_context.value.stdout
+    run('podman', 'pull', tag)
 
-    # validate non-zero-size layer counts against base image to ensure the squash (or lack thereof) resulted in the expected number of layers
-    if not squash or squash_supported:
-        local_engine = containmint.engine.program
+    proc = run('podman', 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(new_container_file))
+    data = "[" + proc.stdout.replace("}\n", "},\n").rstrip(",\n") + "]"
+    base_layer_count = len([layer for layer in json.loads(data) if layer.get('size', 0) > 0])
 
-        proc = run(str(local_engine), 'history', '--format', '{{json .}}', '--human=false', get_base_image_from_container_file(new_container_file))
-        data = f'[{",".join(proc.stdout.splitlines())}]' if local_engine.name == 'docker' else proc.stdout
-        base_layer_count = len([layer for layer in json.loads(data) if layer.get('size', int(layer.get('Size', 0))) > 0])
+    proc = run('podman', 'image', 'inspect', '--log-level=error', tag)
+    layer_count = len(json.loads(proc.stdout)[0]['RootFS']['Layers'])
 
-        proc = run(str(local_engine), 'manifest', 'inspect', *(('--log-level=error',) if local_engine.name == 'podman' else ()), tag)
-        layer_count = len([layer for layer in json.loads(proc.stdout)['layers'] if layer.get('size', 0) > 0])
-
-        if squash == 'new':
-            assert layer_count == base_layer_count + 1
-        elif squash == 'all':
-            assert layer_count == 1
-        else:
-            assert layer_count == base_layer_count + new_container_own_layer_count
+    if squash == 'new':
+        assert layer_count == base_layer_count + 1
+    elif squash == 'all':
+        assert layer_count == 1
+    else:
+        assert layer_count == base_layer_count + new_container_own_layer_count
 
 
 @pytest.mark.parametrize('remote', REMOTES, ids=[f'from:{remote}' for remote in REMOTES])

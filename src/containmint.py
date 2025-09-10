@@ -32,7 +32,7 @@ try:
 except ImportError:
     argcomplete = None
 
-__version__ = '0.5.1'
+__version__ = '0.6.0'
 
 PROGRAM_NAME = os.path.basename(__file__)
 TAG_FORMAT = '{server}/{repo}:{tag}'
@@ -209,9 +209,6 @@ class Execute(BuildCommand):
                 options.append('--squash-all')
             elif self.squash == 'new':
                 options.append('--squash')
-        elif engine.program.name == 'docker':
-            if self.squash:
-                raise SquashUnsupportedError(squash_mode=self.squash, container_engine=engine.program.name)
 
         for build_arg in self.build_args or []:
             options.extend(('--build-arg', build_arg))
@@ -347,7 +344,7 @@ class ContainerEngine:
     @staticmethod
     def detect() -> pathlib.Path:
         """Detect the program used to manage containers."""
-        programs = ('podman', 'docker')
+        programs = ('podman',)
 
         for program in programs:
             if path := shutil.which(program):
@@ -465,7 +462,7 @@ class AptBootstrapper(Bootstrapper):
             DEBIAN_FRONTEND='noninteractive',
         )
 
-        run_command('apt-get', 'install', 'docker.io', '-y', '--no-install-recommends', env=apt_env)
+        run_command('apt-get', 'install', 'podman', '-y', '--no-install-recommends', env=apt_env)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -485,16 +482,6 @@ class ApplicationError(Exception):
         self.message = message
 
         super().__init__(message)
-
-
-class SquashUnsupportedError(ApplicationError):
-    """An unsupported layer squashing mode was requested from the container runtime engine."""
-
-    def __init__(self, squash_mode: str, container_engine: str) -> None:
-        self.squash_mode = squash_mode
-        self.container_engine = container_engine
-
-        super().__init__(f'Container engine {container_engine} does not support squash mode {squash_mode}')
 
 
 class NoContainerEngineDetectedError(ApplicationError):
@@ -715,7 +702,7 @@ def parse_args() -> Command:
 
     build_parser = subparsers.add_parser(Build.cli_name(), parents=[common_build_parser], description=Build.__doc__, help=Build.__doc__)
     build_parser.add_argument('--keep-instance', action='store_true', help='keep the remote instance')
-    build_parser.add_argument('--remote', default='ubuntu/22.04', help='ansible-test remote target args')
+    build_parser.add_argument('--remote', default='ubuntu/24.04', help='ansible-test remote target args')
     build_parser.add_argument('--arch', metavar='ARCH', default='x86_64', choices=['x86_64', 'aarch64'], help='architecture (choices: %(choices)s)')
     build_parser.set_defaults(command_type=Build)
 
