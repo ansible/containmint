@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7.0 - Unreleased
+------------------
+
+* Update test requirements.
+
 0.6.0 - 2025-09-10
 ------------------
 
