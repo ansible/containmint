@@ -80,7 +80,6 @@ class Build(BuildCommand):
 
     def run(self) -> None:
         """Run the CLI command."""
-
         workdir_name = f'workdir-{secrets.token_hex(4)}'
         remote_workdir = f'/root/{workdir_name}'
         remote_program = os.path.join(remote_workdir, PROGRAM_NAME)

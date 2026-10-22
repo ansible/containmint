@@ -16,8 +16,10 @@ import nox
 
 updater: list[str] = []
 """Sessions which update the source code."""
+
 checker: list[str] = []
 """Sessions which check the source code."""
+
 special: list[str] = []
 """Sessions which have their own requirements but are not in the updater or checker list."""
 
