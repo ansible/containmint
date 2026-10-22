@@ -1,3 +1,2 @@
-charset-normalizer==3.4.3
+charset-normalizer==3.5.2
 docformatter==1.7.7
-untokenize==0.1.1

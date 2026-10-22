@@ -63,7 +63,6 @@ def test_subprocess_error():
 
 def test_no_container_engine_error():
     """Make sure the case of no container engine is properly handled."""
-
     with unittest.mock.patch.object(shutil, 'which', side_effect=lambda cmd: None) as patch:
         with pytest.raises(containmint.NoContainerEngineDetectedError):
             containmint.engine.detect()

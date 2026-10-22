@@ -32,7 +32,7 @@ try:
 except ImportError:
     argcomplete = None
 
-__version__ = '0.6.0'
+__version__ = '0.7.0.dev0'
 
 PROGRAM_NAME = os.path.basename(__file__)
 TAG_FORMAT = '{server}/{repo}:{tag}'
@@ -80,7 +80,6 @@ class Build(BuildCommand):
 
     def run(self) -> None:
         """Run the CLI command."""
-
         workdir_name = f'workdir-{secrets.token_hex(4)}'
         remote_workdir = f'/root/{workdir_name}'
         remote_program = os.path.join(remote_workdir, PROGRAM_NAME)
